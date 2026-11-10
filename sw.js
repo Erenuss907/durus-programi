@@ -2,7 +2,7 @@
 // - Sayfa (index.html): önce ağ, 3 sn içinde cevap yoksa ya da çevrimdışıysa önbellek → güncellemeler hemen gelir.
 // - Görseller, ikonlar vb.: önce önbellek (cache-first).
 // İçerik değişince VERSION'ı artır.
-const VERSION = 'durus-v3';
+const VERSION = 'durus-v4';
 
 const JPG = ['treadmill-warmup','leg-press','chest-press','seated-cable-row','lat-pulldown','face-pull',
   'plank','goblet-squat','incline-db-press','one-arm-db-row','reverse-fly','leg-curl','dead-bug',
@@ -26,10 +26,19 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
+  let hadOld = false;
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(keys => { const old = keys.filter(k => k !== VERSION); hadOld = old.length > 0;
+                      return Promise.all(old.map(k => caches.delete(k))); })
       .then(() => self.clients.claim())
+      .then(() => {
+        if (!hadOld) return;   // ilk kurulumda yenilemeye gerek yok
+        // Açık olan eski sayfaları yeni sürümle yeniden yükle (eski sayfanın kodunda bunu yapacak bir şey yok).
+        // waitUntil zincirinin dışında: aktivasyon bitmeden gelen istekler bekletildiği için içeride kilitlenirdi.
+        self.clients.matchAll({type: 'window'})
+          .then(list => list.forEach(c => c.navigate(c.url).catch(() => {})));
+      })
   );
 });
 
