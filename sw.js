@@ -1,5 +1,5 @@
 // Cache-first service worker. İçerik değişince VERSION'ı artır.
-const VERSION = 'durus-v1';
+const VERSION = 'durus-v2';
 
 const JPG = ['treadmill-warmup','leg-press','chest-press','seated-cable-row','lat-pulldown','face-pull',
   'plank','goblet-squat','incline-db-press','one-arm-db-row','reverse-fly','leg-curl','dead-bug',

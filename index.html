@@ -5,141 +5,240 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Duruş Programı</title>
 <meta name="description" content="Haftada 3 gün, duruş odaklı gym programı">
-<meta name="theme-color" content="#0b7a75">
+<meta name="theme-color" content="#0a0e0f">
+<meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Duruş">
 <style>
 :root{
-  --brand:#0b7a75; --brand-ink:#ffffff; --brand-soft:#e3f1f0;
-  --bg:#f4f7f6; --card:#ffffff; --ink:#18201f; --muted:#5d6b69; --line:#dfe7e5;
-  --done:#e9f5ee; --thumb:#eef6f5;
+  --bg:#0a0e0f; --surface:#121819; --surface-2:#192223; --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.12);
+  --ink:#eef3f2; --muted:#8a9997; --faint:#5c6a68;
+  --accent:#2dd4bf; --accent-2:#0b7a75; --accent-ink:#03201d; --accent-soft:rgba(45,212,191,.12);
+  --red:#ff6b6b;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 10px 30px -12px rgba(0,0,0,.6);
 }
-@media (prefers-color-scheme: dark){
-  :root{ --bg:#0f1514; --card:#18211f; --ink:#e6eeec; --muted:#97a6a3; --line:#28332f;
-         --brand-soft:#16302d; --done:#15291f; --thumb:#e9f2f0; }
-}
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-header{background:var(--brand);color:var(--brand-ink);padding:calc(14px + env(safe-area-inset-top)) 16px 0;position:sticky;top:0;z-index:5}
-.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-h1{font-size:20px;margin:0}
-.meta{font-size:13px;opacity:.85}
-nav{display:flex;gap:4px;margin-top:12px}
-nav button{flex:1;border:0;background:transparent;color:inherit;font:inherit;font-weight:600;padding:10px 0 12px;
-  opacity:.7;border-bottom:3px solid transparent;cursor:pointer}
-nav button[aria-selected="true"]{opacity:1;border-color:#fff}
-main{max-width:720px;margin:0 auto;padding:16px}
-.focus{color:var(--muted);font-size:14px;margin:0 0 12px}
-h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
-.ex{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;align-items:flex-start}
-.ex.done{background:var(--done)}
-.thumb{flex:0 0 96px;height:72px;border:0;padding:0;border-radius:10px;overflow:hidden;background:var(--thumb);cursor:zoom-in;position:relative}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.thumb img[src$=".svg"]{object-fit:contain}
-.thumb img.missing{display:none}
-.body{flex:1;min-width:0}
-.name{font-weight:650;margin:0}
-.dose{font-size:14px;color:var(--brand);font-weight:600;margin:2px 0}
-.cue{font-size:13px;color:var(--muted);margin:0}
-.row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
-.kg{width:84px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
-.check{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;user-select:none}
-.check input{width:20px;height:20px;accent-color:var(--brand)}
-.actions{display:flex;gap:8px;margin-top:20px}
-.btn{flex:1;border:0;border-radius:12px;padding:14px;font:inherit;font-weight:650;cursor:pointer}
-.btn.primary{background:var(--brand);color:var(--brand-ink)}
-.btn.ghost{background:var(--brand-soft);color:var(--ink)}
-.log{font-size:13px;color:var(--muted);margin-top:14px}
-/* önizleme */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
-.modal.open{display:flex}
-.sheet{width:100%;max-width:560px;background:var(--card);border-radius:16px;overflow:hidden}
-.stage{position:relative;background:var(--thumb);aspect-ratio:3/2;cursor:pointer}
-.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .25s}
+body{background:var(--bg);color:var(--ink);
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- üst bölüm ---------- */
+.hero{position:relative;padding:calc(18px + env(safe-area-inset-top)) 20px 18px;
+  background:radial-gradient(120% 90% at 100% 0%,rgba(45,212,191,.20),transparent 55%),
+             radial-gradient(80% 70% at 0% 0%,rgba(11,122,117,.25),transparent 60%),var(--bg)}
+.eyebrow{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.week{border:1px solid var(--line-2);border-radius:99px;padding:4px 10px;letter-spacing:.04em;color:var(--ink);background:rgba(255,255,255,.04)}
+.headline{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px}
+h1{font-size:34px;line-height:1.05;margin:0;font-weight:750;letter-spacing:-.02em}
+.focus{margin:8px 0 0;color:var(--muted);font-size:14px;max-width:30ch}
+.ring{flex:0 0 76px;height:76px;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring .track{stroke:rgba(255,255,255,.08)}
+.ring .bar{stroke:var(--accent);transition:stroke-dashoffset .5s cubic-bezier(.2,.8,.2,1)}
+.ring .lbl{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-weight:700;font-size:17px;line-height:1}
+.ring .lbl small{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-top:3px;letter-spacing:.06em}
+
+/* gün seçici */
+.seg-wrap{position:sticky;top:0;z-index:10;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top) * 0);
+  background:rgba(10,14,15,.78);backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);
+  border-bottom:1px solid var(--line)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;max-width:688px;margin:0 auto}
+.seg button{border:0;background:transparent;border-radius:10px;padding:10px 0;font-weight:650;font-size:14px;color:var(--muted);cursor:pointer;transition:background .2s,color .2s}
+.seg button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+
+main{max-width:720px;margin:0 auto;padding:6px 16px 0}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:26px 4px 12px}
+.sec h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sec span{font-size:12px;color:var(--faint)}
+
+/* ---------- hareket kartı ---------- */
+.ex{background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:12px;margin-bottom:12px;box-shadow:var(--shadow);transition:border-color .25s,opacity .25s}
+.ex.done{border-color:rgba(45,212,191,.35)}
+.ex.done .media img{filter:saturate(.4) brightness(.7)}
+.top{display:flex;gap:14px}
+.media{flex:0 0 112px;height:84px;border:0;padding:0;border-radius:var(--r-md);overflow:hidden;background:#0e1516;cursor:zoom-in;position:relative}
+.media img{width:100%;height:100%;object-fit:cover;display:block;transition:filter .25s}
+.media img[src$=".svg"]{object-fit:contain;padding:6px}
+.media img.missing{display:none}
+.media .idx{position:absolute;left:6px;top:6px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;
+  background:rgba(10,14,15,.75);backdrop-filter:blur(6px);font-size:12px;font-weight:700;display:grid;place-items:center}
+.media .zoom{position:absolute;right:6px;bottom:6px;width:24px;height:24px;border-radius:50%;background:rgba(10,14,15,.7);display:grid;place-items:center}
+.info{flex:1;min-width:0}
+.name{font-size:16px;font-weight:680;margin:2px 0 8px;letter-spacing:-.01em;line-height:1.25}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:650;padding:5px 9px;border-radius:99px;
+  background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.chip.accent{background:var(--accent-soft);border-color:rgba(45,212,191,.25);color:var(--accent)}
+button.chip{cursor:pointer}
+.cue{font-size:13px;color:var(--muted);margin:12px 2px 0;line-height:1.5}
+.actrow{display:flex;gap:8px;align-items:center;margin-top:12px}
+.kg{display:flex;align-items:center;gap:4px;height:40px;padding:0 10px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:rgba(0,0,0,.25);flex:0 0 96px}
+.kg input{width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:650;font-size:15px;outline:none;font-variant-numeric:tabular-nums}
+.kg span{font-size:12px;color:var(--faint)}
+.btn-sm{height:40px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;border-radius:var(--r-sm);
+  border:1px solid var(--line-2);background:rgba(255,255,255,.04);font-size:13px;font-weight:650;text-decoration:none;color:var(--ink);cursor:pointer}
+.btn-sm.yt svg{color:#ff4e45}
+.done-btn{margin-left:auto;height:40px;min-width:40px;padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--line-2);
+  background:transparent;display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s}
+.done-btn .box{width:18px;height:18px;border-radius:6px;border:2px solid var(--faint);display:grid;place-items:center;transition:all .2s}
+.done-btn .box svg{opacity:0;transform:scale(.6);transition:all .2s}
+.ex.done .done-btn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ex.done .done-btn .box{border-color:var(--accent-ink);background:var(--accent-ink)}
+.ex.done .done-btn .box svg{opacity:1;transform:none;color:var(--accent)}
+
+/* ---------- alt butonlar ---------- */
+.actions{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:22px}
+.btn{height:54px;border-radius:16px;border:1px solid var(--line-2);background:var(--surface);font-weight:700;font-size:15px;cursor:pointer}
+.btn.primary{border:0;color:var(--accent-ink);background:linear-gradient(135deg,#5eead4,var(--accent) 45%,#14b8a6);
+  box-shadow:0 10px 30px -10px rgba(45,212,191,.55)}
+.log{font-size:12px;color:var(--faint);margin:16px 4px 0;text-align:center}
+
+/* ---------- dinlenme sayacı ---------- */
+.timer{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:30;max-width:520px;margin:0 auto;
+  background:rgba(22,30,31,.88);backdrop-filter:saturate(160%) blur(20px);-webkit-backdrop-filter:saturate(160%) blur(20px);
+  border:1px solid var(--line-2);border-radius:20px;padding:12px 12px 12px 18px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 20px 50px -10px rgba(0,0,0,.7);transform:translateY(160%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.timer.on{transform:none}
+.timer .t{font-size:30px;font-weight:750;letter-spacing:-.02em;min-width:84px}
+.timer .lbl{flex:1;font-size:12px;color:var(--muted);line-height:1.3}
+.timer .prog{position:absolute;left:18px;right:18px;bottom:0;height:3px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.timer .prog i{display:block;height:100%;background:var(--accent);width:100%;transform-origin:left;transition:transform 1s linear}
+.timer button{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--line-2);background:rgba(255,255,255,.05);font-weight:700;font-size:13px;cursor:pointer}
+.timer.end{border-color:var(--accent)}
+.timer.end .t{color:var(--accent)}
+
+/* ---------- önizleme ---------- */
+.modal{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.open{opacity:1;pointer-events:auto}
+.sheet{width:100%;max-width:560px;background:var(--surface);border:1px solid var(--line-2);border-bottom:0;border-radius:26px 26px 0 0;
+  overflow:hidden;transform:translateY(40px);transition:transform .3s cubic-bezier(.2,.8,.2,1);padding-bottom:env(safe-area-inset-bottom)}
+.modal.open .sheet{transform:none}
+@media (min-width:600px){.modal{align-items:center}.sheet{border-radius:26px;border-bottom:1px solid var(--line-2)}}
+.grab{width:40px;height:5px;border-radius:5px;background:var(--line-2);margin:10px auto 0}
+.stage{position:relative;margin:12px;border-radius:18px;overflow:hidden;background:#0e1516;aspect-ratio:3/2;cursor:pointer}
+.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .3s}
+.stage img[src$=".svg"]{padding:14px}
 .stage img.hide{opacity:0}
-.badge{position:absolute;left:10px;top:10px;background:var(--brand);color:#fff;font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px}
-.sheet .info{padding:12px 16px 16px}
-.sheet .hint{font-size:12px;color:var(--muted);margin:6px 0 0}
-.close{position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
+.badge{position:absolute;left:10px;top:10px;background:rgba(10,14,15,.75);backdrop-filter:blur(6px);color:var(--ink);font-size:12px;font-weight:700;padding:5px 10px;border-radius:99px}
+.badge i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:1px}
+.close{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(10,14,15,.75);font-size:18px;cursor:pointer;display:grid;place-items:center}
+.dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:6px}
+.dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);transition:all .25s}
+.dots i.on{width:18px;border-radius:6px;background:var(--ink)}
+.sheet .body{padding:4px 20px 20px}
+.sheet .name{font-size:20px;margin:4px 0 10px}
+.sheet .cue{margin:12px 0 0;font-size:14px}
+.sheet .hint{font-size:12px;color:var(--faint);margin:10px 0 0}
+.sheet .yt-big{margin-top:16px;width:100%;height:50px;border-radius:14px;justify-content:center;font-size:14px;background:rgba(255,78,69,.1);border-color:rgba(255,78,69,.3)}
 </style>
 </head>
 <body>
-<header>
-  <div class="top"><h1>Duruş Programı</h1><span class="meta" id="weekLbl"></span></div>
-  <nav id="tabs" role="tablist"></nav>
+
+<header class="hero">
+  <div class="eyebrow"><span>Duruş Programı</span><span class="week num" id="weekLbl"></span></div>
+  <div class="headline">
+    <div>
+      <h1 id="dayTitle"></h1>
+      <p class="focus" id="focus"></p>
+    </div>
+    <div class="ring" aria-label="İlerleme">
+      <svg width="76" height="76" viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="32" fill="none" stroke-width="7"/>
+        <circle class="bar" id="ringBar" cx="38" cy="38" r="32" fill="none" stroke-width="7" stroke-linecap="round" stroke-dasharray="201.06" stroke-dashoffset="201.06"/></svg>
+      <div class="lbl num"><div><span id="ringTxt">0/0</span><small>TAMAM</small></div></div>
+    </div>
+  </div>
 </header>
 
+<div class="seg-wrap"><div class="seg" id="tabs" role="tablist"></div></div>
+
 <main>
-  <p class="focus" id="focus"></p>
-  <h2>Isınma</h2><div id="warm"></div>
-  <h2>Ana bölüm</h2><div id="main"></div>
-  <h2>Soğuma</h2><div id="cool"></div>
+  <div class="sec"><h2>Isınma</h2><span id="warmMeta"></span></div><div id="warm"></div>
+  <div class="sec"><h2>Ana bölüm</h2><span id="mainMeta"></span></div><div id="main"></div>
+  <div class="sec"><h2>Soğuma</h2><span id="coolMeta"></span></div><div id="cool"></div>
   <div class="actions">
-    <button class="btn ghost" id="resetBtn">Sıfırla</button>
+    <button class="btn" id="resetBtn">Sıfırla</button>
     <button class="btn primary" id="finishBtn">Antrenmanı bitir</button>
   </div>
   <p class="log" id="log"></p>
 </main>
 
+<div class="timer" id="timer" role="status" aria-live="polite">
+  <div class="t num" id="tTime">0:00</div>
+  <div class="lbl"><b style="color:var(--ink)">Dinlenme</b><br><span id="tName"></span></div>
+  <button id="tPlus">+15 sn</button>
+  <button id="tStop">Bitir</button>
+  <div class="prog"><i id="tProg"></i></div>
+</div>
+
 <div class="modal" id="modal" aria-hidden="true">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mName">
+    <div class="grab"></div>
     <div class="stage" id="stage" title="Dokun: durdur / devam">
       <img id="f0" alt=""><img id="f1" alt="" class="hide">
-      <span class="badge" id="badge">Başlangıç</span>
-      <button class="close" id="closeBtn" aria-label="Kapat">×</button>
+      <span class="badge" id="badge"><i></i><span id="badgeTxt">Başlangıç</span></span>
+      <button class="close" id="closeBtn" aria-label="Kapat">✕</button>
+      <div class="dots" id="dots"><i class="on"></i><i></i></div>
     </div>
-    <div class="info">
+    <div class="body">
       <p class="name" id="mName"></p>
-      <p class="dose" id="mDose"></p>
+      <div class="chips" id="mChips"></div>
       <p class="cue" id="mCue"></p>
-      <p class="hint" id="mHint">Görsel başlangıç ve bitiş pozisyonu arasında geçiş yapar. Durdurmak için görsele dokun.</p>
+      <p class="hint" id="mHint">Görsel başlangıç ve bitiş pozisyonu arasında geçer. Durdurmak için görsele dokun.</p>
+      <a class="btn-sm yt yt-big" id="mYt" target="_blank" rel="noopener"></a>
     </div>
   </div>
 </div>
 
 <script>
-/* ---------- VERİ ---------- */
+/* ---------- VERİ ----------
+   yt: YouTube'da aranacak ifade (link her zaman güncel arama sonuçlarını açar) */
 const W = [
-  {id:'treadmill-warmup', name:'Koşu bandında yürüyüş', dose:'5–8 dk', cue:'Tempolu yürü, omuzlar gevşek, göğüs açık.'},
-  {id:'chin-tuck',        name:'Çene içe çekme (chin tuck)', dose:'2 × 10 · 3 sn tut', cue:'Başını geriye kaydır, çeneyi aşağı eğme; kulak omuz hizasına gelsin.'},
-  {id:'wall-angel',       name:'Duvar meleği', dose:'2 × 10', cue:'Sırt, baş ve kollar duvarda; kolları yavaşça yukarı kaydır.'}
+  {id:'treadmill-warmup', name:'Koşu bandında yürüyüş', dose:'5–8 dk', cue:'Tempolu yürü, omuzlar gevşek, göğüs açık.', yt:'koşu bandında doğru yürüyüş'},
+  {id:'chin-tuck',        name:'Çene içe çekme', dose:'2 × 10 · 3 sn tut', cue:'Başını geriye kaydır, çeneyi aşağı eğme; kulak omuz hizasına gelsin.', yt:'chin tuck egzersizi boyun duruş'},
+  {id:'wall-angel',       name:'Duvar meleği', dose:'2 × 10', cue:'Sırt, baş ve kollar duvarda; kolları yavaşça yukarı kaydır.', yt:'wall angel egzersizi nasıl yapılır'}
 ];
 
 const DAYS = [
   {key:'A', title:'Gün A', focus:'Makine ağırlıklı tam vücut · çekiş hareketleri itişten fazla', ex:[
-    {id:'leg-press',        name:'Leg press',               dose:'3 × 10–12', rest:'90 sn', cue:'Bel sırtlıktan kalkmasın, dizler ayak ucu yönünde.'},
-    {id:'chest-press',      name:'Chest press (makine)',    dose:'3 × 10–12', rest:'90 sn', cue:'Kürek kemiklerini geride tut, omuzları kulağa çekme.'},
-    {id:'seated-cable-row', name:'Oturarak kablo row',      dose:'3 × 12',    rest:'90 sn', cue:'Önce kürekleri sık, sonra dirsekleri geriye çek.'},
-    {id:'lat-pulldown',     name:'Lat pulldown',            dose:'3 × 10–12', rest:'90 sn', cue:'Barı göğüs üstüne çek, gövdeyle sallanma.'},
-    {id:'face-pull',        name:'Face pull',               dose:'3 × 15',    rest:'60 sn', cue:'İpi yüze doğru çekip elleri ayır; dirsekler yüksek.'},
-    {id:'plank',            name:'Plank',                   dose:'3 × 30 sn', rest:'45 sn', cue:'Kalça düşmesin, karın ve kalça sıkı.'}
+    {id:'leg-press',        name:'Leg press',               dose:'3 × 10–12', rest:'90 sn', cue:'Bel sırtlıktan kalkmasın, dizler ayak ucu yönünde.', yt:'leg press nasıl yapılır doğru form'},
+    {id:'chest-press',      name:'Chest press (makine)',    dose:'3 × 10–12', rest:'90 sn', cue:'Kürek kemiklerini geride tut, omuzları kulağa çekme.', yt:'chest press makine nasıl yapılır'},
+    {id:'seated-cable-row', name:'Oturarak kablo row',      dose:'3 × 12',    rest:'90 sn', cue:'Önce kürekleri sık, sonra dirsekleri geriye çek.', yt:'seated cable row nasıl yapılır'},
+    {id:'lat-pulldown',     name:'Lat pulldown',            dose:'3 × 10–12', rest:'90 sn', cue:'Barı göğüs üstüne çek, gövdeyle sallanma.', yt:'lat pulldown nasıl yapılır doğru form'},
+    {id:'face-pull',        name:'Face pull',               dose:'3 × 15',    rest:'60 sn', cue:'İpi yüze doğru çekip elleri ayır; dirsekler yüksek.', yt:'face pull nasıl yapılır'},
+    {id:'plank',            name:'Plank',                   dose:'3 × 30 sn', rest:'45 sn', cue:'Kalça düşmesin, karın ve kalça sıkı.', yt:'plank doğru nasıl yapılır'}
   ]},
   {key:'B', title:'Gün B', focus:'Serbest ağırlık · üst sırt ve arka omuz vurgusu', ex:[
-    {id:'goblet-squat',     name:'Goblet squat',            dose:'3 × 10',     rest:'90 sn', cue:'Ağırlığı göğüse yakın tut, göğüs dik.'},
-    {id:'incline-db-press', name:'Eğimli dumbbell press',   dose:'3 × 10',     rest:'90 sn', cue:'Bench 30°, dirsekler gövdeye ~45°.'},
-    {id:'one-arm-db-row',   name:'Tek kol dumbbell row',    dose:'3 × 10 / kol', rest:'60 sn', cue:'Sırt düz, dumbbell’ı kalçaya doğru çek.'},
-    {id:'reverse-fly',      name:'Reverse fly',             dose:'3 × 15',     rest:'60 sn', cue:'Hafif ağırlık; kolları yanlara aç, kürekleri sık.'},
-    {id:'leg-curl',         name:'Leg curl',                dose:'3 × 12',     rest:'60 sn', cue:'Kontrollü indir, kalça pedden kalkmasın.'},
-    {id:'dead-bug',         name:'Dead bug',                dose:'3 × 8 / yan', rest:'45 sn', cue:'Bel yere yapışık; karşı kol ve bacağı yavaşça uzat.'}
+    {id:'goblet-squat',     name:'Goblet squat',            dose:'3 × 10',     rest:'90 sn', cue:'Ağırlığı göğse yakın tut, göğüs dik.', yt:'goblet squat nasıl yapılır'},
+    {id:'incline-db-press', name:'Eğimli dumbbell press',   dose:'3 × 10',     rest:'90 sn', cue:'Bench 30°, dirsekler gövdeye ~45°.', yt:'incline dumbbell press nasıl yapılır'},
+    {id:'one-arm-db-row',   name:'Tek kol dumbbell row',    dose:'3 × 10 / kol', rest:'60 sn', cue:'Sırt düz, dumbbell’ı kalçaya doğru çek.', yt:'tek kol dumbbell row nasıl yapılır'},
+    {id:'reverse-fly',      name:'Reverse fly',             dose:'3 × 15',     rest:'60 sn', cue:'Hafif ağırlık; kolları yanlara aç, kürekleri sık.', yt:'dumbbell reverse fly arka omuz nasıl yapılır'},
+    {id:'leg-curl',         name:'Leg curl',                dose:'3 × 12',     rest:'60 sn', cue:'Kontrollü indir, kalça pedden kalkmasın.', yt:'leg curl makine nasıl yapılır'},
+    {id:'dead-bug',         name:'Dead bug',                dose:'3 × 8 / yan', rest:'45 sn', cue:'Bel yere yapışık; karşı kol ve bacağı yavaşça uzat.', yt:'dead bug egzersizi nasıl yapılır'}
   ]},
   {key:'C', title:'Gün C', focus:'Arka zincir · omuz ve kol', ex:[
-    {id:'db-rdl',              name:'Dumbbell Romanian deadlift', dose:'3 × 10',  rest:'90 sn', cue:'Kalçayı geriye it, sırt nötr, dumbbell bacağa yakın.'},
-    {id:'close-grip-pulldown', name:'Dar tutuş pulldown',      dose:'3 × 10–12',  rest:'90 sn', cue:'Göğsü tutamağa doğru kaldır, dirsekler aşağı.'},
-    {id:'shoulder-press',      name:'Omuz press (oturarak)',   dose:'3 × 10',     rest:'90 sn', cue:'Bel kavisini artırma, karın sıkı.'},
-    {id:'leg-extension',       name:'Leg extension',           dose:'3 × 12',     rest:'60 sn', cue:'Üstte 1 sn tut, kontrollü indir.'},
-    {id:'curl-pushdown',       name:'Biceps curl + triceps pushdown', dose:'2 × 12 + 12 (süperset)', rest:'60 sn', cue:'Dirsekler gövdeye sabit, omuzlar geride.'},
-    {id:'side-plank',          name:'Yan plank',               dose:'3 × 20–30 sn / yan', rest:'45 sn', cue:'Baş, gövde ve ayaklar tek çizgide.'}
+    {id:'db-rdl',              name:'Dumbbell Romanian deadlift', dose:'3 × 10',  rest:'90 sn', cue:'Kalçayı geriye it, sırt nötr, dumbbell bacağa yakın.', yt:'dumbbell romanian deadlift nasıl yapılır'},
+    {id:'close-grip-pulldown', name:'Dar tutuş pulldown',      dose:'3 × 10–12',  rest:'90 sn', cue:'Göğsü tutamağa doğru kaldır, dirsekler aşağı.', yt:'close grip lat pulldown nasıl yapılır'},
+    {id:'shoulder-press',      name:'Omuz press',              dose:'3 × 10',     rest:'90 sn', cue:'Bel kavisini artırma, karın sıkı.', yt:'oturarak dumbbell shoulder press nasıl yapılır'},
+    {id:'leg-extension',       name:'Leg extension',           dose:'3 × 12',     rest:'60 sn', cue:'Üstte 1 sn tut, kontrollü indir.', yt:'leg extension nasıl yapılır'},
+    {id:'curl-pushdown',       name:'Biceps curl + triceps pushdown', dose:'2 × 12 + 12', rest:'60 sn', cue:'Süperset: ara vermeden iki hareket. Dirsekler gövdeye sabit.', yt:'biceps curl triceps pushdown süperset'},
+    {id:'side-plank',          name:'Yan plank',               dose:'3 × 20–30 sn / yan', rest:'45 sn', cue:'Baş, gövde ve ayaklar tek çizgide.', yt:'yan plank side plank nasıl yapılır'}
   ]}
 ];
 
 const END = [
-  {id:'incline-walk',    name:'Eğimli yürüyüş',     dose:'10 dk · %6–10 eğim', cue:'Tutamaklara asılma, dik yürü.'},
-  {id:'doorway-stretch', name:'Kapı çerçevesinde göğüs esnetme', dose:'2 × 30 sn / yan', cue:'Ön kol çerçevede, bir adım öne geç; göğüste gerilmeyi hisset.'}
+  {id:'incline-walk',    name:'Eğimli yürüyüş', dose:'10 dk · %6–10 eğim', cue:'Tutamaklara asılma, dik yürü.', yt:'incline walking treadmill doğru form'},
+  {id:'doorway-stretch', name:'Kapı çerçevesinde göğüs esnetme', dose:'2 × 30 sn / yan', cue:'Ön kol çerçevede, bir adım öne geç; göğüste gerilmeyi hisset.', yt:'doorway chest stretch göğüs esnetme'}
 ];
 
 /* ---------- DURUM (localStorage) ---------- */
@@ -151,6 +250,19 @@ function load(){
 }
 let S = load();
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ---------- YARDIMCILAR ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const currentDay = () => DAYS.find(d => d.key === S.day) || DAYS[0];
+const ytUrl = ex => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(ex.yt || ex.name);
+const restSec = r => { const m = /(\d+)/.exec(r || ''); return m ? +m[1] : 0; };
+const I = {
+  play:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.4-1.6.5-4.8.5-4.8s0-3.2-.5-4.8zM9.7 15.1V8.9l5.8 3.1-5.8 3.1z"/></svg>',
+  check:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  clock:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>',
+  zoom:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>'
+};
 
 /* ---------- GÖRSELLER: önce .jpg, sonra .svg ---------- */
 function setImg(img, id, frame, onFail){
@@ -167,35 +279,52 @@ function setImg(img, id, frame, onFail){
 }
 
 /* ---------- ÇİZİM ---------- */
-const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const currentDay = () => DAYS.find(d => d.key === S.day) || DAYS[0];
-
-function card(ex, scope){
+function card(ex, scope, n){
   const k = scope + ':' + ex.id;
   const done = !!(S.done[S.day] || {})[k];
   const el = document.createElement('div');
   el.className = 'ex' + (done ? ' done' : '');
   el.innerHTML = `
-    <button class="thumb" aria-label="${esc(ex.name)} görselini büyüt"><img alt="" loading="lazy"></button>
-    <div class="body">
-      <p class="name">${esc(ex.name)}</p>
-      <p class="dose">${esc(ex.dose)}${ex.rest ? ' · dinlenme ' + esc(ex.rest) : ''}</p>
-      <p class="cue">${esc(ex.cue)}</p>
-      <div class="row">
-        ${scope === 'm' ? `<input class="kg" inputmode="decimal" placeholder="kg" value="${esc(S.kg[ex.id] || '')}" aria-label="${esc(ex.name)} ağırlık">` : ''}
-        <label class="check"><input type="checkbox" ${done ? 'checked' : ''}> Tamam</label>
+    <div class="top">
+      <button class="media" aria-label="${esc(ex.name)} görselini büyüt">
+        <img alt="" loading="lazy">${n ? `<span class="idx num">${n}</span>` : ''}<span class="zoom">${I.zoom}</span>
+      </button>
+      <div class="info">
+        <p class="name">${esc(ex.name)}</p>
+        <div class="chips">
+          <span class="chip accent num">${esc(ex.dose)}</span>
+          ${ex.rest ? `<button class="chip num rest" aria-label="${esc(ex.rest)} dinlenme sayacını başlat">${I.clock}${esc(ex.rest)}</button>` : ''}
+        </div>
       </div>
+    </div>
+    <p class="cue">${esc(ex.cue)}</p>
+    <div class="actrow">
+      ${scope === 'm' ? `<label class="kg"><input inputmode="decimal" placeholder="—" value="${esc(S.kg[ex.id] || '')}" aria-label="${esc(ex.name)} ağırlık"><span>kg</span></label>` : ''}
+      <a class="btn-sm yt" href="${ytUrl(ex)}" target="_blank" rel="noopener">${I.play}Video</a>
+      <button class="done-btn" aria-pressed="${done}"><span class="box">${I.check}</span>Tamam</button>
     </div>`;
-  setImg(el.querySelector('.thumb img'), ex.id, 0);
-  el.querySelector('.thumb').addEventListener('click', () => openPreview(ex));
-  el.querySelector('.check input').addEventListener('change', e => {
-    (S.done[S.day] = S.done[S.day] || {})[k] = e.target.checked;
-    el.classList.toggle('done', e.target.checked); save();
+  setImg(el.querySelector('.media img'), ex.id, 0);
+  el.querySelector('.media').addEventListener('click', () => openPreview(ex));
+  const rb = el.querySelector('.rest');
+  if (rb) rb.addEventListener('click', () => startTimer(restSec(ex.rest), ex.name));
+  el.querySelector('.done-btn').addEventListener('click', e => {
+    const v = !el.classList.contains('done');
+    (S.done[S.day] = S.done[S.day] || {})[k] = v;
+    el.classList.toggle('done', v); e.currentTarget.setAttribute('aria-pressed', v);
+    save(); updateRing();
+    if (v && navigator.vibrate) navigator.vibrate(15);
   });
-  const kg = el.querySelector('.kg');
+  const kg = el.querySelector('.kg input');
   if (kg) kg.addEventListener('input', e => { S.kg[ex.id] = e.target.value.trim(); save(); });
   return el;
+}
+
+function updateRing(){
+  const d = currentDay(), total = W.length + d.ex.length + END.length;
+  const done = Object.values(S.done[S.day] || {}).filter(Boolean).length;
+  const C = 201.06;
+  $('#ringBar').style.strokeDashoffset = C - C * (total ? done / total : 0);
+  $('#ringTxt').textContent = `${done}/${total}`;
 }
 
 function render(){
@@ -205,15 +334,20 @@ function render(){
     const b = document.createElement('button');
     b.textContent = x.title; b.setAttribute('role','tab');
     b.setAttribute('aria-selected', x.key === d.key);
-    b.onclick = () => { S.day = x.key; save(); render(); scrollTo(0,0); };
+    b.onclick = () => { S.day = x.key; save(); render(); scrollTo({top:0, behavior:'smooth'}); };
     $('#tabs').appendChild(b);
   });
   $('#weekLbl').textContent = `Hafta ${S.week}`;
+  $('#dayTitle').textContent = d.title;
   $('#focus').textContent = d.focus;
-  const fill = (sel, arr, scope) => { const box = $(sel); box.innerHTML = ''; arr.forEach(ex => box.appendChild(card(ex, scope))); };
-  fill('#warm', W, 'w'); fill('#main', d.ex, 'm'); fill('#cool', END, 'c');
-  const last = S.log.slice(-3).reverse().map(l => `${l.date} · ${l.day}`).join('  |  ');
-  $('#log').textContent = S.log.length ? `Tamamlanan antrenman: ${S.log.length}. Son: ${last}` : '';
+  const fill = (sel, arr, scope, numbered) => { const box = $(sel); box.innerHTML = ''; arr.forEach((ex, i) => box.appendChild(card(ex, scope, numbered ? i + 1 : 0))); };
+  fill('#warm', W, 'w'); fill('#main', d.ex, 'm', true); fill('#cool', END, 'c');
+  $('#warmMeta').textContent = `${W.length} hareket`;
+  $('#mainMeta').textContent = `${d.ex.length} hareket`;
+  $('#coolMeta').textContent = `${END.length} hareket`;
+  const last = S.log.slice(-1)[0];
+  $('#log').textContent = S.log.length ? `${S.log.length} antrenman tamamlandı · son: ${last.day}, ${last.date}` : '';
+  updateRing();
 }
 
 $('#resetBtn').onclick = () => { S.done[S.day] = {}; save(); render(); };
@@ -224,29 +358,58 @@ $('#finishBtn').onclick = () => {
   const i = DAYS.indexOf(d);
   if (i === DAYS.length - 1) S.week++;          // C bitince yeni hafta
   S.day = DAYS[(i + 1) % DAYS.length].key;      // sıradaki güne geç
-  save(); render(); scrollTo(0,0);
+  save(); render(); scrollTo({top:0, behavior:'smooth'});
 };
+
+/* ---------- DİNLENME SAYACI ---------- */
+let tEnd = 0, tTotal = 0, tInt = null;
+const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+function tick(){
+  const left = Math.max(0, Math.round((tEnd - Date.now()) / 1000));
+  $('#tTime').textContent = fmt(left);
+  $('#tProg').style.transform = `scaleX(${tTotal ? left / tTotal : 0})`;
+  if (left === 0 && tInt) {
+    clearInterval(tInt); tInt = null;
+    $('#timer').classList.add('end'); $('#tName').textContent = 'Süre doldu · sıradaki set';
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    setTimeout(stopTimer, 4000);
+  }
+}
+function startTimer(sec, name){
+  if (!sec) return;
+  tTotal = sec; tEnd = Date.now() + sec * 1000;
+  $('#tName').textContent = name; $('#timer').classList.remove('end'); $('#timer').classList.add('on');
+  clearInterval(tInt); tInt = setInterval(tick, 250); tick();
+}
+function stopTimer(){ clearInterval(tInt); tInt = null; $('#timer').classList.remove('on', 'end'); }
+$('#tPlus').onclick = () => { if (!tInt) return; tEnd += 15000; tTotal += 15; tick(); };
+$('#tStop').onclick = stopTimer;
 
 /* ---------- ÖNİZLEME (başlangıç ↔ bitiş) ---------- */
 let timer = null, frame = 0, twoFrames = true;
 const f0 = $('#f0'), f1 = $('#f1');
-function show(n){ frame = n; f0.classList.toggle('hide', n === 1); f1.classList.toggle('hide', n === 0);
-  $('#badge').textContent = n ? 'Bitiş' : 'Başlangıç'; }
+function show(n){
+  frame = n; f0.classList.toggle('hide', n === 1); f1.classList.toggle('hide', n === 0);
+  $('#badgeTxt').textContent = n ? 'Bitiş' : 'Başlangıç';
+  [...$('#dots').children].forEach((d, i) => d.classList.toggle('on', i === n));
+}
 function play(){ stop(); if (twoFrames) timer = setInterval(() => show(frame ? 0 : 1), 1100); }
 function stop(){ clearInterval(timer); timer = null; }
 function openPreview(ex){
   twoFrames = true;
+  $('#badge').hidden = false; $('#dots').hidden = false; $('#mHint').hidden = false;
   setImg(f0, ex.id, 0);
-  setImg(f1, ex.id, 1, () => { twoFrames = false; stop(); show(0); $('#badge').hidden = true; });
-  $('#badge').hidden = false;
-  $('#mName').textContent = ex.name; $('#mDose').textContent = ex.dose; $('#mCue').textContent = ex.cue;
+  setImg(f1, ex.id, 1, () => { twoFrames = false; stop(); show(0); $('#badge').hidden = true; $('#dots').hidden = true; $('#mHint').hidden = true; });
+  $('#mName').textContent = ex.name;
+  $('#mChips').innerHTML = `<span class="chip accent num">${esc(ex.dose)}</span>${ex.rest ? `<span class="chip num">${I.clock}${esc(ex.rest)} dinlenme</span>` : ''}`;
+  $('#mCue').textContent = ex.cue;
+  $('#mYt').href = ytUrl(ex); $('#mYt').innerHTML = `${I.play}YouTube'da nasıl yapıldığını izle`;
   show(0); play();
   $('#modal').classList.add('open'); $('#modal').setAttribute('aria-hidden','false');
 }
 function closePreview(){ stop(); $('#modal').classList.remove('open'); $('#modal').setAttribute('aria-hidden','true'); }
 $('#stage').addEventListener('click', e => {
-  if (e.target.id === 'closeBtn') return;
-  if (!twoFrames) return;
+  if (e.target.closest('#closeBtn') || !twoFrames) return;
   if (timer) { stop(); show(frame ? 0 : 1); } else play();
 });
 $('#closeBtn').onclick = closePreview;
