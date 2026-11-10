@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Duruş Programı</title>
+<meta name="description" content="Haftada 3 gün, duruş odaklı gym programı">
+<meta name="theme-color" content="#0b7a75">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Duruş">
+<style>
+:root{
+  --brand:#0b7a75; --brand-ink:#ffffff; --brand-soft:#e3f1f0;
+  --bg:#f4f7f6; --card:#ffffff; --ink:#18201f; --muted:#5d6b69; --line:#dfe7e5;
+  --done:#e9f5ee; --thumb:#eef6f5;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f1514; --card:#18211f; --ink:#e6eeec; --muted:#97a6a3; --line:#28332f;
+         --brand-soft:#16302d; --done:#15291f; --thumb:#e9f2f0; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+header{background:var(--brand);color:var(--brand-ink);padding:calc(14px + env(safe-area-inset-top)) 16px 0;position:sticky;top:0;z-index:5}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{font-size:20px;margin:0}
+.meta{font-size:13px;opacity:.85}
+nav{display:flex;gap:4px;margin-top:12px}
+nav button{flex:1;border:0;background:transparent;color:inherit;font:inherit;font-weight:600;padding:10px 0 12px;
+  opacity:.7;border-bottom:3px solid transparent;cursor:pointer}
+nav button[aria-selected="true"]{opacity:1;border-color:#fff}
+main{max-width:720px;margin:0 auto;padding:16px}
+.focus{color:var(--muted);font-size:14px;margin:0 0 12px}
+h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+.ex{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;align-items:flex-start}
+.ex.done{background:var(--done)}
+.thumb{flex:0 0 96px;height:72px;border:0;padding:0;border-radius:10px;overflow:hidden;background:var(--thumb);cursor:zoom-in;position:relative}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb img[src$=".svg"]{object-fit:contain}
+.thumb img.missing{display:none}
+.body{flex:1;min-width:0}
+.name{font-weight:650;margin:0}
+.dose{font-size:14px;color:var(--brand);font-weight:600;margin:2px 0}
+.cue{font-size:13px;color:var(--muted);margin:0}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.kg{width:84px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
+.check{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;user-select:none}
+.check input{width:20px;height:20px;accent-color:var(--brand)}
+.actions{display:flex;gap:8px;margin-top:20px}
+.btn{flex:1;border:0;border-radius:12px;padding:14px;font:inherit;font-weight:650;cursor:pointer}
+.btn.primary{background:var(--brand);color:var(--brand-ink)}
+.btn.ghost{background:var(--brand-soft);color:var(--ink)}
+.log{font-size:13px;color:var(--muted);margin-top:14px}
+/* önizleme */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.modal.open{display:flex}
+.sheet{width:100%;max-width:560px;background:var(--card);border-radius:16px;overflow:hidden}
+.stage{position:relative;background:var(--thumb);aspect-ratio:3/2;cursor:pointer}
+.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .25s}
+.stage img.hide{opacity:0}
+.badge{position:absolute;left:10px;top:10px;background:var(--brand);color:#fff;font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px}
+.sheet .info{padding:12px 16px 16px}
+.sheet .hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+.close{position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><h1>Duruş Programı</h1><span class="meta" id="weekLbl"></span></div>
+  <nav id="tabs" role="tablist"></nav>
+</header>
+
+<main>
+  <p class="focus" id="focus"></p>
+  <h2>Isınma</h2><div id="warm"></div>
+  <h2>Ana bölüm</h2><div id="main"></div>
+  <h2>Soğuma</h2><div id="cool"></div>
+  <div class="actions">
+    <button class="btn ghost" id="resetBtn">Sıfırla</button>
+    <button class="btn primary" id="finishBtn">Antrenmanı bitir</button>
+  </div>
+  <p class="log" id="log"></p>
+</main>
+
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mName">
+    <div class="stage" id="stage" title="Dokun: durdur / devam">
+      <img id="f0" alt=""><img id="f1" alt="" class="hide">
+      <span class="badge" id="badge">Başlangıç</span>
+      <button class="close" id="closeBtn" aria-label="Kapat">×</button>
+    </div>
+    <div class="info">
+      <p class="name" id="mName"></p>
+      <p class="dose" id="mDose"></p>
+      <p class="cue" id="mCue"></p>
+      <p class="hint" id="mHint">Görsel başlangıç ve bitiş pozisyonu arasında geçiş yapar. Durdurmak için görsele dokun.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- VERİ ---------- */
+const W = [
+  {id:'treadmill-warmup', name:'Koşu bandında yürüyüş', dose:'5–8 dk', cue:'Tempolu yürü, omuzlar gevşek, göğüs açık.'},
+  {id:'chin-tuck',        name:'Çene içe çekme (chin tuck)', dose:'2 × 10 · 3 sn tut', cue:'Başını geriye kaydır, çeneyi aşağı eğme; kulak omuz hizasına gelsin.'},
+  {id:'wall-angel',       name:'Duvar meleği', dose:'2 × 10', cue:'Sırt, baş ve kollar duvarda; kolları yavaşça yukarı kaydır.'}
+];
+
+const DAYS = [
+  {key:'A', title:'Gün A', focus:'Makine ağırlıklı tam vücut · çekiş hareketleri itişten fazla', ex:[
+    {id:'leg-press',        name:'Leg press',               dose:'3 × 10–12', rest:'90 sn', cue:'Bel sırtlıktan kalkmasın, dizler ayak ucu yönünde.'},
+    {id:'chest-press',      name:'Chest press (makine)',    dose:'3 × 10–12', rest:'90 sn', cue:'Kürek kemiklerini geride tut, omuzları kulağa çekme.'},
+    {id:'seated-cable-row', name:'Oturarak kablo row',      dose:'3 × 12',    rest:'90 sn', cue:'Önce kürekleri sık, sonra dirsekleri geriye çek.'},
+    {id:'lat-pulldown',     name:'Lat pulldown',            dose:'3 × 10–12', rest:'90 sn', cue:'Barı göğüs üstüne çek, gövdeyle sallanma.'},
+    {id:'face-pull',        name:'Face pull',               dose:'3 × 15',    rest:'60 sn', cue:'İpi yüze doğru çekip elleri ayır; dirsekler yüksek.'},
+    {id:'plank',            name:'Plank',                   dose:'3 × 30 sn', rest:'45 sn', cue:'Kalça düşmesin, karın ve kalça sıkı.'}
+  ]},
+  {key:'B', title:'Gün B', focus:'Serbest ağırlık · üst sırt ve arka omuz vurgusu', ex:[
+    {id:'goblet-squat',     name:'Goblet squat',            dose:'3 × 10',     rest:'90 sn', cue:'Ağırlığı göğüse yakın tut, göğüs dik.'},
+    {id:'incline-db-press', name:'Eğimli dumbbell press',   dose:'3 × 10',     rest:'90 sn', cue:'Bench 30°, dirsekler gövdeye ~45°.'},
+    {id:'one-arm-db-row',   name:'Tek kol dumbbell row',    dose:'3 × 10 / kol', rest:'60 sn', cue:'Sırt düz, dumbbell’ı kalçaya doğru çek.'},
+    {id:'reverse-fly',      name:'Reverse fly',             dose:'3 × 15',     rest:'60 sn', cue:'Hafif ağırlık; kolları yanlara aç, kürekleri sık.'},
+    {id:'leg-curl',         name:'Leg curl',                dose:'3 × 12',     rest:'60 sn', cue:'Kontrollü indir, kalça pedden kalkmasın.'},
+    {id:'dead-bug',         name:'Dead bug',                dose:'3 × 8 / yan', rest:'45 sn', cue:'Bel yere yapışık; karşı kol ve bacağı yavaşça uzat.'}
+  ]},
+  {key:'C', title:'Gün C', focus:'Arka zincir · omuz ve kol', ex:[
+    {id:'db-rdl',              name:'Dumbbell Romanian deadlift', dose:'3 × 10',  rest:'90 sn', cue:'Kalçayı geriye it, sırt nötr, dumbbell bacağa yakın.'},
+    {id:'close-grip-pulldown', name:'Dar tutuş pulldown',      dose:'3 × 10–12',  rest:'90 sn', cue:'Göğsü tutamağa doğru kaldır, dirsekler aşağı.'},
+    {id:'shoulder-press',      name:'Omuz press (oturarak)',   dose:'3 × 10',     rest:'90 sn', cue:'Bel kavisini artırma, karın sıkı.'},
+    {id:'leg-extension',       name:'Leg extension',           dose:'3 × 12',     rest:'60 sn', cue:'Üstte 1 sn tut, kontrollü indir.'},
+    {id:'curl-pushdown',       name:'Biceps curl + triceps pushdown', dose:'2 × 12 + 12 (süperset)', rest:'60 sn', cue:'Dirsekler gövdeye sabit, omuzlar geride.'},
+    {id:'side-plank',          name:'Yan plank',               dose:'3 × 20–30 sn / yan', rest:'45 sn', cue:'Baş, gövde ve ayaklar tek çizgide.'}
+  ]}
+];
+
+const END = [
+  {id:'incline-walk',    name:'Eğimli yürüyüş',     dose:'10 dk · %6–10 eğim', cue:'Tutamaklara asılma, dik yürü.'},
+  {id:'doorway-stretch', name:'Kapı çerçevesinde göğüs esnetme', dose:'2 × 30 sn / yan', cue:'Ön kol çerçevede, bir adım öne geç; göğüste gerilmeyi hisset.'}
+];
+
+/* ---------- DURUM (localStorage) ---------- */
+const KEY = 'durus-programi-v1';
+const defaults = () => ({day:'A', week:1, done:{}, kg:{}, log:[]});
+function load(){
+  try{ return Object.assign(defaults(), JSON.parse(localStorage.getItem(KEY)) || {}); }
+  catch(e){ return defaults(); }
+}
+let S = load();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ---------- GÖRSELLER: önce .jpg, sonra .svg ---------- */
+function setImg(img, id, frame, onFail){
+  const s = frame ? '-2' : '';
+  const list = [`images/${id}${s}.jpg`, `images/${id}${s}.svg`];
+  let i = 0;
+  img.classList.remove('missing');
+  img.onerror = () => {
+    i++;
+    if (i < list.length) img.src = list[i];
+    else { img.onerror = null; img.removeAttribute('src'); img.classList.add('missing'); onFail && onFail(); }
+  };
+  img.src = list[0];
+}
+
+/* ---------- ÇİZİM ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const currentDay = () => DAYS.find(d => d.key === S.day) || DAYS[0];
+
+function card(ex, scope){
+  const k = scope + ':' + ex.id;
+  const done = !!(S.done[S.day] || {})[k];
+  const el = document.createElement('div');
+  el.className = 'ex' + (done ? ' done' : '');
+  el.innerHTML = `
+    <button class="thumb" aria-label="${esc(ex.name)} görselini büyüt"><img alt="" loading="lazy"></button>
+    <div class="body">
+      <p class="name">${esc(ex.name)}</p>
+      <p class="dose">${esc(ex.dose)}${ex.rest ? ' · dinlenme ' + esc(ex.rest) : ''}</p>
+      <p class="cue">${esc(ex.cue)}</p>
+      <div class="row">
+        ${scope === 'm' ? `<input class="kg" inputmode="decimal" placeholder="kg" value="${esc(S.kg[ex.id] || '')}" aria-label="${esc(ex.name)} ağırlık">` : ''}
+        <label class="check"><input type="checkbox" ${done ? 'checked' : ''}> Tamam</label>
+      </div>
+    </div>`;
+  setImg(el.querySelector('.thumb img'), ex.id, 0);
+  el.querySelector('.thumb').addEventListener('click', () => openPreview(ex));
+  el.querySelector('.check input').addEventListener('change', e => {
+    (S.done[S.day] = S.done[S.day] || {})[k] = e.target.checked;
+    el.classList.toggle('done', e.target.checked); save();
+  });
+  const kg = el.querySelector('.kg');
+  if (kg) kg.addEventListener('input', e => { S.kg[ex.id] = e.target.value.trim(); save(); });
+  return el;
+}
+
+function render(){
+  const d = currentDay();
+  $('#tabs').innerHTML = '';
+  DAYS.forEach(x => {
+    const b = document.createElement('button');
+    b.textContent = x.title; b.setAttribute('role','tab');
+    b.setAttribute('aria-selected', x.key === d.key);
+    b.onclick = () => { S.day = x.key; save(); render(); scrollTo(0,0); };
+    $('#tabs').appendChild(b);
+  });
+  $('#weekLbl').textContent = `Hafta ${S.week}`;
+  $('#focus').textContent = d.focus;
+  const fill = (sel, arr, scope) => { const box = $(sel); box.innerHTML = ''; arr.forEach(ex => box.appendChild(card(ex, scope))); };
+  fill('#warm', W, 'w'); fill('#main', d.ex, 'm'); fill('#cool', END, 'c');
+  const last = S.log.slice(-3).reverse().map(l => `${l.date} · ${l.day}`).join('  |  ');
+  $('#log').textContent = S.log.length ? `Tamamlanan antrenman: ${S.log.length}. Son: ${last}` : '';
+}
+
+$('#resetBtn').onclick = () => { S.done[S.day] = {}; save(); render(); };
+$('#finishBtn').onclick = () => {
+  const d = currentDay();
+  S.log.push({date: new Date().toLocaleDateString('tr-TR'), day: d.title});
+  S.done[S.day] = {};
+  const i = DAYS.indexOf(d);
+  if (i === DAYS.length - 1) S.week++;          // C bitince yeni hafta
+  S.day = DAYS[(i + 1) % DAYS.length].key;      // sıradaki güne geç
+  save(); render(); scrollTo(0,0);
+};
+
+/* ---------- ÖNİZLEME (başlangıç ↔ bitiş) ---------- */
+let timer = null, frame = 0, twoFrames = true;
+const f0 = $('#f0'), f1 = $('#f1');
+function show(n){ frame = n; f0.classList.toggle('hide', n === 1); f1.classList.toggle('hide', n === 0);
+  $('#badge').textContent = n ? 'Bitiş' : 'Başlangıç'; }
+function play(){ stop(); if (twoFrames) timer = setInterval(() => show(frame ? 0 : 1), 1100); }
+function stop(){ clearInterval(timer); timer = null; }
+function openPreview(ex){
+  twoFrames = true;
+  setImg(f0, ex.id, 0);
+  setImg(f1, ex.id, 1, () => { twoFrames = false; stop(); show(0); $('#badge').hidden = true; });
+  $('#badge').hidden = false;
+  $('#mName').textContent = ex.name; $('#mDose').textContent = ex.dose; $('#mCue').textContent = ex.cue;
+  show(0); play();
+  $('#modal').classList.add('open'); $('#modal').setAttribute('aria-hidden','false');
+}
+function closePreview(){ stop(); $('#modal').classList.remove('open'); $('#modal').setAttribute('aria-hidden','true'); }
+$('#stage').addEventListener('click', e => {
+  if (e.target.id === 'closeBtn') return;
+  if (!twoFrames) return;
+  if (timer) { stop(); show(frame ? 0 : 1); } else play();
+});
+$('#closeBtn').onclick = closePreview;
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closePreview(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
+
+render();
+
+/* ---------- SERVICE WORKER ---------- */
+if ('serviceWorker' in navigator) {
+  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
