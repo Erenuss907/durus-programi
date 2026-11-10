@@ -420,7 +420,13 @@ render();
 
 /* ---------- SERVICE WORKER ---------- */
 if ('serviceWorker' in navigator) {
-  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  // Yeni sürüm devreye girince sayfayı bir kez yenile (ilk kurulumda değil)
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && !reloaded) { reloaded = true; location.reload(); }
+  });
+  addEventListener('load', () => navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'}).catch(() => {}));
 }
 </script>
 </body>

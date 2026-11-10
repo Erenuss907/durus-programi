@@ -1,5 +1,8 @@
-// Cache-first service worker. İçerik değişince VERSION'ı artır.
-const VERSION = 'durus-v2';
+// Service worker
+// - Sayfa (index.html): önce ağ, 3 sn içinde cevap yoksa ya da çevrimdışıysa önbellek → güncellemeler hemen gelir.
+// - Görseller, ikonlar vb.: önce önbellek (cache-first).
+// İçerik değişince VERSION'ı artır.
+const VERSION = 'durus-v3';
 
 const JPG = ['treadmill-warmup','leg-press','chest-press','seated-cable-row','lat-pulldown','face-pull',
   'plank','goblet-squat','incline-db-press','one-arm-db-row','reverse-fly','leg-curl','dead-bug',
@@ -14,7 +17,12 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache:'reload' → tarayıcının HTTP önbelleğini atla, sunucudan taze dosya al
+  e.waitUntil(
+    caches.open(VERSION)
+      .then(c => c.addAll(ASSETS.map(u => new Request(u, {cache: 'reload'}))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', e => {
@@ -25,13 +33,26 @@ self.addEventListener('activate', e => {
   );
 });
 
+function networkFirst(req){
+  const net = fetch(req, {cache: 'no-cache'}).then(res => {
+    if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./index.html', copy)); }
+    return res;
+  });
+  const timeout = new Promise(r => setTimeout(r, 3000));
+  const fromCache = () => caches.match('./index.html');
+  return Promise.race([net, timeout.then(fromCache)])
+    .then(res => res || net)
+    .catch(() => fromCache());
+}
+
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  if (req.mode === 'navigate') { e.respondWith(networkFirst(req)); return; }
   e.respondWith(
     caches.match(req, {ignoreSearch: true}).then(hit => hit || fetch(req).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
       return res;
-    }).catch(() => req.mode === 'navigate' ? caches.match('./index.html') : Response.error()))
+    }))
   );
 });
